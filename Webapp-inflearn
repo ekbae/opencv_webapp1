@@ -1,0 +1,169 @@
+## Webapp
+# 2020.05.22
+https://www.inflearn.com/course/opencv-webapp-cv-lecture
+
+Django web framework
+Linux
+Python
+Python-OpenCV
+
+
+virtualenvwrapper
+mkvirtualenv [name]
+workon
+setvirtualenvproject - project, env mapping
+cdproject
+
+
+pip install opencv-python]
+cv2.__version 
+'4.2.0' (lecture, 3.4.1)
+
+
+pycharm 설치
+다운받고, 압축푼다음에, bin에 가서, sudo ./pycharm.sh
+
+PyCharm> edit configurations
+parameters - 
+runserver 127.0.0.1:8000
+
+
+#Django
+pip3 install django
+django-admin startproject opencv_webapp .
+터미널에서 실행
+python manage.py runserver 127.0.0.1:8000
+
+
+python3 manage.py startapp opencv_web #opencv_web app 을 하나 만들기. 폴더 생성돰
+
+pycharm에서 site폴더
+settings.py 
+-> INSTALLED_APPS 에 APP 추가된 것 내용 추가
+    'opencv_web', # add app
+-> ALLOWED_HOSTS = ['127.0.0.1', '.pythonanywhere.com']    ## add
+
+urls.py 에서 내용 추가
+->
+from django.conf.urls import include, url
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    url(r'', include('opencv_web.urls')),
+]
+
+app 폴더내에 urls.py를 새로 생성
+내용 추가
+->
+from django.conf.urls import include, url
+from . import views
+
+urlpatterns = [
+    url(r'^$', views.first_view, name='first_view'),
+]
+
+어떤 문자가 들어오든 view의 first_veiw로 가라는 것임. 
+view.ppy에 가면 아무것도 없음. 그래서 first_view 함수 생성함
+
+
+view.py 내용 추가
+->
+from django.shortcuts import render
+
+# Create your views here.
+from django.shortcuts import render
+
+def first_view(request):
+    return render(request, 'opencv_web/first_view.html',{})
+
+
+first_view.html 이 없으니 만들어줄건데, 이때 경로를 잘 설정해야함. 
+app폴더밑에 templates 폴더 생성하고 opencv_web 폴더 생성한뒤
+new html file 생성
+
+
+
+
+#Django의 흐름
+# url 을 입력하면 site 에서 web1로 url 전달되서 views가 보이고, 
+views는 templates 폴더에서 html을 띄우고
+view에 form 이 들어가게 되면 DB와 연동됨
+일을 세분화 하게 하기 위해서 만들어진 구조임
+
+ 
+# DB를 추가해보자
+site의 settings.py에서 
+-> 
+MEDIA_URL ='/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+app에 가서, url.py에서
+->
+
+from django.conf import settings #add 
+from django.conf.urls.static import static # add
+
+url pattens에 내용 추가
+    url(r'^uimage/$', views.uimage, name='uimage'), # add
+
+uimage 로 주소가 들어오면, uimage를 보여주겠다 
+이미지파일을 업로드하기 위한 내용 추가
+
+urlpatterns += static(settings.MEDIA_URL,
+                      doucment_root=settings.MEDIA_ROOT)
+
+
+
+views.py 에 가서 이미지 업로드 코드 작성
+이미지 업로드할 Form은 UploadImageForm임
+->
+from .forms import UploadImageForm
+from django.core.files.storage import FileSystemStorage
+
+
+
+def uimage(request):
+    if request.method == 'POST':
+        form = UploadImageForm(request.POST, request.FILES)
+    if form.is_valid():
+        myfile=request.FILES['image']
+        fs = FileSystemStorage()
+        filename=fs.save(myfile.name, myfile)
+        uploaded_file_url=fs.url(filename)
+        return render(request, 'opencv_web/uimage.html',
+                      {'form': form, 'uploaded_file_url': uploaded_file_url})
+    else:
+        form=UploadImageForm()
+        return render(request, 'opencv_web/uimage.html',
+                      {'form': form})
+
+
+
+
+#forms.py가 없기 때문에 app에서 생성해줌
+
+templates 에 uimage.html 설정
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1> image upload example </h1>
+<form method = "POST" class = "post-form" enctype = "multipart/form-data">
+    {% csrf_token %}    #security
+    {{form.as_p}}
+    <button type = "submit" class = "save btn-default" value=""upload">save! </button>
+</form>
+{% if uploaded_file_url %}
+<img src=" {{uploaded_file_url}}">
+<p>File uploaded at: <a href = "{{ uploaded_file_url }}">{{uploaded_file_url}}</a></p>
+{% endif %}
+<p><a href="{% url 'uimage' %}"> Return to home </a></p>
+</body>
+</html>
+
+
+
+

@@ -208,9 +208,145 @@ from django.contrib.staticfiles.handlers import StaticFilesHandler
 application = StaticFilesHandler(get_wsgi_application())
 
 
+/home/ekbae8765/opencv_webapp1/opencv_webapp
 
 
 virtualenv update가 필요
 local의 가상환경 내보내기 해서, 
 pip3 freeze > requirements.txt
+
+git 에 올려주고, 
+pythonanywhere의 console에서 git pull 한다
+pip3 install -r requirements.txt #install lib.
+
+설치가 완료되면 DB 마이그레이션 한번
+python3 manage.py migrate
+
+그리고 web에 가서 upload 하기
+
+-----------------------------
+DB
+setting.py에 추가
+MEDIA_ROOT_URL = '.'
+
+app에 urls.py 추가
+    url(r'^dface/$', views.dface, name='dface'), #add
+
+models 에 내용 추가
+class ImageUploadModel(models.Model):
+    description = models.CharField(max_length=255, blank=True)
+    document = models.ImageField(upload_to='images/%Y/%m/%d')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+forms.py 내용 추가
+->
+from .models import ImageUploadModel
+
+class ImageUploadForm(forms.ModelForm):
+    class Meta:
+    	model = ImageUploadModel
+    	fields = ('description', 'document')
+
+
+views에 dface 함수 추가
+def dface(request):
+    if request.method=='POST':
+        form = ImageUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.save()
+
+            imageURL = settings.MEDIA_URL + form.instance.docuemnt.name
+            #opencv_dface(settings.MEDIA_ROOT_URL + imageURL)
+
+            return render(request, 'opencv_web/dface.html', {'form':form, 'post': post})
+    else:
+        form = ImageUploadForm()
+    return render(request, 'opencv_web/dface.html',{'form':form})
+
+
+
+DB변경사항이 있어서 장고에 디비변경됬다고 전달해야함
+python3 magage.py makemigrations
+python3 magage.py migrate
+
+
+app폴더에 views에서 def dface의 주석해제 
+opencv_dface.py 만들기
+->
+from django.conf import settings
+import numpy as np
+import cv2
+
+def opencv_deface(path):
+    # Read the input image
+    img = cv2.imread(path,1)
+
+    if (type(img) is np.ndarray):
+        print(img.shape)
+
+        baseUrl = settings.MEDIA_ROOT_URL + settings.MEDIA_URL
+
+        # Load the cascade
+        face_cascade = cv2.CascadeClassifier(baseUrl+'haarcascade_frontalface_default.xml')
+        # Convert into grayscale
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # Detect faces
+        faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+        # Draw rectangle around the faces
+        for (x, y, w, h) in faces:
+            cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+        cv2.imwrite(path, img)
+
+    else:
+        print('something error')
+        print(path)
+
+
+views.py에서 import
+from .opencv_dface import opencv_dface
+
+
+local 에서 서버 돌려보고 에러 없으면 git 으로 push 
+git push 끝나면 pythonanywhere에서 pull 함
+
+웹서버에서는 settings.py 와 media/images 를 관리하지 않을 것이기 때문에  --> MySQULdb로 사용
+gitignore에 파일 추가
+vi .gitignore
+settings.py
+/media/images
+
+
+settings.py에서 수정
+MEDIA_ROOT_URL = '/home/ekbae8765/opencv_webapp1'
+
+
+pythonanywhere에서 Database에 MYSQL 추가
+pw: mysql1234
+ekbae8765$first
+
+pip3 install pymysql
+ 
+setting 에서 DB정보 수정
+
+   'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ekbae8765$first'),
+        'USER': 'ekbae8765',
+        'PASSWORD': 'mysql1234'
+        'HOST': 'ekbae8765.mysql.ppythonanywhere-services.com',
+        'PORT': ''
+    }
+
+
+이렇게 된다음에 ppython manage.py migrate 를 해서 DB 를 업데이트함
+error가 났는데, client 버전 문제라서, setting에 import pymysql 이후에 내용 추가함 
+pymysql.version_info = (1, 3, 13, "final", 0)
+
+publish 할때는 Debug 모드를 꼭 False로 해야 해커 공격이 없음.
+보안상 외부에서 접근 못하게 되는데, 
+media 폴더만 경로를 오픈 할 수 있음. -> static files 에 경로 변경
+
+
 

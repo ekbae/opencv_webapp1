@@ -165,5 +165,52 @@ templates 에 uimage.html 설정
 </html>
 
 
+추가 pip3 install pillow 해줘야함. 
 
+http://127.0.0.1:8000/uimage/
+
+html
+python3 manage.py migrate
+
+
+## web site publish
+
+
+git 에 내용 업로드
+.gitignroe  활용
+pythonanywhere 사이트에서 web app 추가
+manual configuration 사용자 임의 설정
+console에서 bash console연다 ls 해서 내용이 없으면 된거고, 아니면 rm -rf 폴더명 으로 강제 지워줌
+git clone 해서 주소 복사
+
+콘솔에서 virtualenv 생성
+->
+mkvirtualenv djagno -p python3.6
+
+web에 virtual env 주소 설정
+/home/ekbae8765/.virtualenvs/django
+
+WSGi cinfigure. file 설정 추가 필요
+내용 많은데 전부 지우고, 다음 내용 추가
+->
+import os
+import sys
+
+path = '/home/ekbae8765/opencv_webapp1'
+if path not in sys.path:
+    sys.path.append(path)
+
+os.environ['DJANGO_SETTINGS_MODULE']='opencv_webapp.settings'
+
+from django.core.wsgi import get_wsgi_application
+from django.contrib.staticfiles.handlers import StaticFilesHandler
+
+application = StaticFilesHandler(get_wsgi_application())
+
+
+
+
+virtualenv update가 필요
+local의 가상환경 내보내기 해서, 
+pip3 freeze > requirements.txt
 

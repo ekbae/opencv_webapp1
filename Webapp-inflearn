@@ -23,8 +23,9 @@ cv2.__version
 pycharm 설치
 다운받고, 압축푼다음에, bin에 가서, sudo ./pycharm.sh
 
-PyCharm> edit configurations
-parameters - 
+PyCharm 상단에 Run > edit configurations
+template + 하고,
+manage.py 경로 설정하고, parameters 에 입
 runserver 127.0.0.1:8000
 
 

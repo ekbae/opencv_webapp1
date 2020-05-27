@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import pymysql
+pymysql.install_as_MySQLdb()
+pymysql.version_info = (1, 3, 13, "final", 0)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -76,10 +79,15 @@ WSGI_APPLICATION = 'opencv_webapp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ekbae8765$first',
+        'USER': 'ekbae8765',
+        'PASSWORD': 'mysql1234',
+        'HOST': 'ekbae8765.mysql.pythonanywhere-services.com',
+        'PORT': ''
     }
 }
+
 
 
 # Password validation
@@ -123,4 +131,5 @@ STATIC_URL = '/static/'
 #add
 MEDIA_URL ='/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_ROOT_URL = '.'
+#MEDIA_ROOT_URL = '.'
+MEDIA_ROOT_URL = '/home/ekbae8765/opencv_webapp1'

@@ -4,6 +4,8 @@ import cv2
 
 def opencv_dface(path):
     # Read the input image
+    print("top path:"+path)
+
     img = cv2.imread(path,1)
 
     if (type(img) is np.ndarray):

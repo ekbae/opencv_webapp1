@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
 # Create your views here.
-from django.shortcuts import render
+# from django.shortcuts import redirect
 from .forms import UploadImageForm
 from .forms import ImageUploadForm
 from django.core.files.storage import FileSystemStorage
@@ -26,6 +26,7 @@ def uimage(request): # when writing
         form=UploadImageForm()
         return render(request, 'opencv_web/uimage.html',
                       {'form': form})
+
 def dface(request):
     if request.method=='POST':
         form = ImageUploadForm(request.POST, request.FILES)
@@ -40,6 +41,8 @@ def dface(request):
                     obs.delete()
 
             imageURL = settings.MEDIA_URL + form.instance.document.name
+            print(settings.MEDIA_ROOT_URL)
+            print(settings.MEDIA_ROOT_URL + imageURL)
             opencv_dface(settings.MEDIA_ROOT_URL + imageURL)
 
             return render(request, 'opencv_web/dface.html', {'form':form, 'post': post})
